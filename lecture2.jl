@@ -1,4 +1,6 @@
 # lecture 2 code
+using PyPlot
+using BenchmarkTools
 
 # back substitution
 
@@ -14,20 +16,33 @@ function back_sub(A, b)
     return x
 end
 
-# error
-function my_lin_solver(A, b)
+function linear_solver(A, b)
+    n = length(b)
 
-    for k = 1:n-1
-        for i = k+1:n
-            coef = A[i,k] / A[k,k]
-            for j = k+1:n
-                A[i,j] = A[i,j] - coef * A[i-1,j]
+    for row = 1:n
+        for i = row + 1 : n
+            coef = A[i, row] / A[row, row]
+            for j = row : n
+                A[i, j] = A[i, j] - coef * A[row, j]
             end
-        end
-        for i = k+1:n
-            A[i,k] = 0.
+            # 课上的程序缺少了这行
+            b[i] = b[i] - coef * b[row]
         end
     end
-    figure(); imshow(A); display(gcf())
     return back_sub(A,b)
 end
+
+n = 200
+
+A = zeros(n, n)
+for i = 1:n
+    for j = 1:n
+        A[i, j] = randn(1)[1]
+    end
+end
+b = randn(n);
+
+A \ b
+linear_solver(A, b)
+
+@btime linear_solver(A, b)
